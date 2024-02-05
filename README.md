@@ -1,7 +1,6 @@
 # Private-Recommendation-Algorithm
 - Abstract
 
-- 
  Due to the overwhelming number of options available on the internet, deciding where to have lunch in the office can be quite challenging. This paper presents a Personalized Restaurant Recommendation System designed to alleviate customer confusion. The system relies on customer preference features, which are collected through their reviews and personalized information.
  - Introduction
   This research tries to make personalized Recommendation system based on Collaborative Filtering Algorithms with the conditions which each user would sustain their preference so that it will influence on their future selection toward restaurants.
