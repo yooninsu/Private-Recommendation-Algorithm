@@ -4,7 +4,11 @@
 
 `Python` `scikit-learn` `Surprise` `TensorFlow` `KoNLPy` `OpenAI Embeddings` · 2024.01 ~ 2024.02
 
-> **상태:** 문제 정의, 설계, 공개 데이터 기반 baseline 실험까지 진행했습니다. 실제 리뷰 데이터에 적용한 결과는 아직 없습니다.
+> **팀:** [Lunch Lab (ItsMEal)](https://github.com/Lunch-Lab) 팀 프로젝트입니다. 실제 서비스 코드와 수집한 리뷰 데이터는 팀 조직의 비공개 저장소에서 관리합니다. 이 저장소는 그중 추천 알고리즘 부분을 개인적으로 연구하고 프로토타입으로 만든 기록입니다.
+>
+> **상태:** 문제 정의, 설계, 공개 데이터 기반 baseline 실험까지 진행했습니다. 실제 리뷰 데이터에 적용한 결과는 이 저장소에 포함되어 있지 않습니다.
+>
+> 팀의 공개 저장소 [Lunch-Lab/LLM](https://github.com/Lunch-Lab/LLM)에서는 크롤링한 사용자 리뷰에 LangChain·BERT로 긍정/부정 라벨을 붙이는 작업을 다룹니다.
 
 ---
 
