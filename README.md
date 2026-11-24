@@ -1,33 +1,75 @@
-# Private-Recommendation-Algorithm
-- Abstract
+# Lunch Lab: 개인화 맛집 추천 시스템 (설계 · 프로토타입)
 
- Due to the overwhelming number of options available on the internet, deciding where to have lunch in the office can be quite challenging. This paper presents a Personalized Restaurant Recommendation System designed to alleviate customer confusion. The system relies on customer preference features, which are collected through their reviews and personalized information.
- - Introduction
-  This research tries to make personalized Recommendation system based on Collaborative Filtering Algorithms with the conditions which each user would sustain their preference so that it will influence on their future selection toward restaurants.
-- Related Work
+> 리뷰가 거의 없는 맛집 데이터에서 "인기 많은 곳"이 아니라 "나에게 맞는 곳"을 추천하는 방법을 설계하고, 공개 데이터로 기본 추천 모델을 검증한 프로젝트
 
+`Python` `scikit-learn` `Surprise` `TensorFlow` `KoNLPy` `OpenAI Embeddings` · 2024.01 ~ 2024.02
 
-전영환 - 당신 취향의 맛집을 추천해드립니다: 장소 개인화 추천 시스템의 비밀(Naver Deview 2020)
-History based POI (Point of Interest) Recommendation system.
-Methodology: Collaborative Filtering
-- Cons:
-Lack of Personalization: Collaborative Filtering relies on the number of clicks customers have made, often leading to recommendations of generally popular restaurants that may not align with individual preferences.
-- Low Accuracy:
-Sparse Data: Restaurants are typically visited for specific purposes, unlike other categories such as music or shopping. Consequently, data collection frequency is low, resulting in a sparsity rate of 99.99%.
-Matrix Folding: Matrix factorization can lead to issues due to incorrect handling of missing values within the algorithm. This can result in users and items with different preferences having highly similar dense vectors. This issue often arises because customer accessibility is confined to their place of residence. For example, people in Busan predominantly visit restaurants within Busan, implicitly partitioning unobserved data.
-- Solutions to Address These Concerns:
-POI-POI Interaction: If certain Points of Interest (POIs) co-occur with other specific POIs, they are considered similar. (Item embedding: Item co-occurrence Matrix Factorization)
-Utilizing Pointwise Mutual Information: Implementing USER-POI interaction to manipulate expected Preference and Actual Preference, making them more similar.
+> **상태:** 문제 정의, 설계, 공개 데이터 기반 baseline 실험까지 진행했습니다. 실제 리뷰 데이터에 적용한 결과는 아직 없습니다.
 
+---
 
-- Knowledge Graph에게 맛집과 사용자를 묻는다: GNN으로 맛집 취향 저격하기- 전영환
-This work serves as a supplement to the understanding of location, which was lacking in their work from the previous year. From the conclusion, we can extract valuable guidance for our future endeavors, which include:
-1.	Defining the problem situation and context is crucial.
-2.	Knowledge Graphs are powerful tools for representing specific domains.
-3.	Tailoring Knowledge Graph design and modeling to the problem situation and context is essential.
-4.	Understanding the characteristics of embeddings allows us to create suitable recommendation services and systems for each feature."
-- Methodology
-- To prevent a cold start, it is advisable to opt for content-based recommendation algorithms. Since our data is written in Korean, we need to transition from nltk to KoNLPy and KoBERT. In this work, it's important to differentiate words based on their part of speech, which is known as '유의미한 표현' (meaningful expression), such as verbs like '맛있어요' (delicious). Therefore, we will perform lemmatization on each word and segment Stop Words and non-Korean words.
-- Experiments
+## 1. 문제
 
+회사 근처에서 점심 먹을 곳을 고를 때, 기존 추천은 클릭이 많은 **인기 맛집**으로 몰립니다. 맛집 데이터에는 다른 추천 분야와 다른 어려움이 있습니다.
 
+| 어려움 | 내용 |
+|---|---|
+| **극단적 희소성** | 맛집은 목적이 있을 때만 방문해서 사용자-식당 행렬의 희소도가 약 99.99% |
+| **콜드 스타트** | 리뷰가 없는 신규 사용자·신규 식당은 협업 필터링으로 추천할 수 없음 |
+| **위치 편향** | 사람들은 주로 생활권 안에서만 방문해서, 관측되지 않은 칸이 "싫어함"이 아니라 "갈 수 없음"인 경우가 많음. 이걸 0으로 채우면 취향이 다른 사용자끼리 비슷하게 보임 |
+
+## 2. 접근 설계
+
+문제마다 다른 방법을 쓰는 혼합 구조로 설계했습니다.
+
+| 단계 | 방법 | 해결하려는 문제 |
+|---|---|---|
+| 콘텐츠 기반 | 리뷰 텍스트 TF-IDF, 한국어 형태소 분석(KoNLPy) | 콜드 스타트 |
+| 협업 필터링 | 사용자 기반 KNN, 행렬 분해(SVD) | 개인 취향 반영 |
+| 그래프 기반 | NGCF (Neural Graph Collaborative Filtering) | 희소 데이터에서 고차 관계 학습 |
+| 의미 검색 | 리뷰 임베딩(OpenAI) + 코사인 유사도 | "조용하고 혼밥하기 좋은 곳" 같은 자연어 요청 |
+
+추천에 쓸 특징도 정의했습니다.
+- **사용자:** 나이, 성별, 리뷰 이력
+- **식당:** 가격, 리뷰 수, 거리, 예약 여부, 분위기, 위치, 음식 분류, 주차 여부
+
+## 3. 평가 지표 설계
+
+정확도만 보면 다시 인기 맛집만 추천하게 됩니다. 그래서 **정확도와 개인화를 함께** 보도록 지표를 나눴습니다.
+
+| 관점 | 지표 |
+|---|---|
+| 정확도 | RMSE, Recall@K, Precision@K, NDCG@K, Hit Ratio |
+| 개인화 | POI Coverage (추천된 식당이 얼마나 다양한가), Diversity |
+
+## 4. Baseline 실험 (공개 데이터)
+
+실제 리뷰 데이터를 쓰기 전에 공개 영화 평점 데이터(MovieLens)로 파이프라인을 검증했습니다.
+
+| 모델 | 결과 |
+|---|---|
+| 콘텐츠 기반 (줄거리 TF-IDF + 코사인 유사도) | 유사 작품 Top-10 추천 확인 |
+| 사용자 기반 KNN 협업 필터링 | 사용자별 예측 평점 산출 |
+| **SVD 행렬 분해** | **Test RMSE 0.8746** |
+
+## 5. 다음 단계
+
+- 수집한 맛집 리뷰 데이터에 콘텐츠 기반 + 협업 필터링 혼합 모델 적용
+- 위치 편향을 고려한 negative sampling (생활권 밖 식당을 "싫어함"으로 처리하지 않기)
+- 정확도와 개인화 지표를 함께 보는 오프라인 평가
+
+## 6. 저장소 구조
+
+| 파일 | 내용 |
+|---|---|
+| `demo.ipynb` | 콘텐츠 기반, KNN, SVD, 임베딩 검색 실험 |
+| `tf_idf.py` | 리뷰 TF-IDF 계산 예시 |
+| `tokenization.py` | 사용자별 리뷰 토큰화 |
+| `NGCF.py` | NGCF 모델 (아래 출처의 공개 구현을 참고) |
+| `Proposal .docx` | 프로젝트 제안서 |
+
+## 7. 참고
+
+- Wang, X. et al. *Neural Graph Collaborative Filtering.* SIGIR 2019. (`NGCF.py`는 저자 공개 구현을 기반으로 함)
+- 전영환, "당신 취향의 맛집을 추천해드립니다: 장소 개인화 추천 시스템의 비밀", NAVER DEVIEW 2020
+- 전영환, "Knowledge Graph에게 맛집과 사용자를 묻는다: GNN으로 맛집 취향 저격하기", NAVER DEVIEW
